@@ -55,24 +55,51 @@ app.put('/person/:id', (req, res) => {
     }
 
     const data = {
-        'id': id,
-        'age': req.body.age,
-        'eyeColor': req.body.eyeColor,
-        'name': req.body.name,
+        id: id,
+        name: req.body.name,
+        age: req.body.age,
+        eyeColor: req.body.eyeColor,
     }
-    persons.splice(person, 1, data)
 
-    fs.writeFile(
-        `${__dirname}/person.json`,
-        JSON.stringify(persons),
-        errr => {
-            res.status(200).json({
-                status: 'success',
-                message: `data dari id ${id} nya berhasil diupdate`,
-                data: data
-            })
-        }
-    )
+    const personName = persons.findIndex(el => el.name === req.body.name);
+    const checkid = persons.findIndex((e) => e.id == req.params.id);
+    const cukupUmur = 20 > parseInt(req.body.age)
+    const checkRequired = (req.body.age && req.body.name && req.body.eyeColor ? true : false)
+
+
+
+    if (!checkRequired) {
+        return res.status(400).json({
+            status: 'failed',
+            message: `Data tidak lengkap silahkan isi terlebih dahulu`
+        })
+    } else if (personName !== -1 && personName !== checkid) {
+        return res.status(400).json({
+            status: 'failed',
+            message: `name ${req.body.name} ${id} ${personName} sudah dipakai silahkan coba`
+        })
+    } else if (cukupUmur) {
+        return res.status(400).json({
+            status: 'failed',
+            message: `umur ${req.body.age} belum cukup`
+        })
+    } else {
+        persons.splice(person, 1, data)
+
+        fs.writeFile(
+            `${__dirname}/person.json`,
+            JSON.stringify(persons),
+            errr => {
+                res.status(200).json({
+                    status: 'success',
+                    message: `data dari id ${id} nya berhasil diupdate`,
+                    data: data
+                })
+            }
+        )
+    }
+
+
 })
 
 
@@ -121,8 +148,7 @@ app.post('/person', (req, res) => {
             status: 'failed',
             message: `Data tidak lengkap silahkan isi terlebih dahulu`
         })
-    }
-    if (personName !== -1) {
+    } else if (personName !== -1) {
         return res.status(400).json({
             status: 'failed',
             message: `name ${req.body.name} sudah dipakai silahkan coba lagi`
